@@ -77,12 +77,12 @@ SELECT * FROM pg_tables WHERE tablename = 'pg_class';
 \! pwd
 
 -- 2. Сохранение результата запроса в файл
-\o /tmp/tables_list.txt
+\o /home/devuser/query/pg_tables_list.txt
 SELECT tablename FROM pg_tables LIMIT 5;
 \o
 
 -- 3. Просмотр содержимого файла
-\! cat /tmp/tables_list.txt
+\! cat /home/devuser/query/pg_tables_list.txt
 
 -- 4. Выполнение SQL-скрипта из файла
 \i /tmp/my_script.sql
@@ -97,7 +97,7 @@ SELECT tablename FROM pg_tables LIMIT 5;
 **Решение:**
 ```sql
 -- 1. Установка переменной
-\set db_name 'student'
+\set db_name 'mytestdb'
 
 -- 2. Использование переменной
 \echo Current database: :db_name
@@ -143,8 +143,6 @@ EOF
 
 ---
 
-### **Дополнительные задачи**
-
 ### **Задача 6: Автоматизация создания отчетов**
 
 **Задача:** Создать скрипт, который автоматически генерирует отчет о самых больших таблицах в базе данных и сохраняет его в файл с timestamp.
@@ -188,7 +186,7 @@ LIMIT 5
 ```
 
 
-### **Задача 8: Обработка ошибок в транзакциях (исправленная)**
+### **Задача 8: Обработка ошибок в транзакциях**
 
 **Задача:** Исследовать различные сценарии обработки ошибок в транзакциях с включенной и выключенной опцией `ON_ERROR_ROLLBACK`.
 
@@ -203,10 +201,12 @@ LIMIT 5
 
 BEGIN;
 CREATE TABLE test_table (id serial primary key, name text);
--- Специально делаем ошибку в синтаксисе
-INSERTINTO test_table (name) VALUES ('test');
--- Попытка продолжить работу (не сработает)
-INSERT INTO test_table (name) VALUES ('test2');
+INSERT INTO test_table (name) VALUES ('test1');     -- Добавляем данные
+SELECT * FROM test_table;                           -- Выведет добавленную строку                      
+INSERTINTO test_table (name) VALUES ('test2');      -- Специально делаем ошибку в синтаксисе
+SELECT * FROM test_table;                           -- Выдаст ошибку
+-- выведет ERROR:  current transaction is aborted, commands ignored until end of transaction block
+INSERT INTO test_table (name) VALUES ('test3');     -- Попытка продолжить работу (не сработает)
 COMMIT; -- Фактически выполнится ROLLBACK
 
 -- Проверяем - таблица не должна существовать
@@ -217,10 +217,11 @@ COMMIT; -- Фактически выполнится ROLLBACK
 
 BEGIN;
 CREATE TABLE test_table2 (id serial primary key, name text);
+INSERT INTO test_table (name) VALUES ('test1');
 -- Снова делаем ошибку
-INSERTINTO test_table2 (name) VALUES ('test');
+INSERTINTO test_table2 (name) VALUES ('test2');
 -- Теперь можно продолжить работу
-INSERT INTO test_table2 (name) VALUES ('test2');
+INSERT INTO test_table2 (name) VALUES ('test3');
 COMMIT; -- Транзакция завершится успешно
 
 -- Проверяем результат
