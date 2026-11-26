@@ -9,14 +9,10 @@ TARBALL="postgresql-${PG_VERSION}.tar.gz"
 DOWNLOAD_URL="https://ftp.postgresql.org/pub/source/v${PG_VERSION}/${TARBALL}"
 
 echo "=== 1. Установка зависимостей ==="
-# Базовые инструменты для сборки
 apt update
-apt install -y build-essential libreadline-dev zlib1g-dev curl sudo  bison flex
+apt install -y build-essential libreadline-dev zlib1g-dev curl sudo bison flex tree
 
-# Дополнительные зависимости, которые обычно нужны для "полной" сборки,
-# аналогичной стандартному пакету Debian (согласно build-depends [citation:1])
-# Если какая-то из них не нужна, ее можно убрать, но для make world
-# лучше иметь большинство.
+# Дополнительные зависимости для расширенной сборки.
 apt install -y \
     libicu-dev \
     libssl-dev \
@@ -31,9 +27,6 @@ apt install -y \
     libzstd-dev \
     llvm-dev \
     clang \
-          --without-perl \
-            --without-python \
-            --without-tcl
     pkg-config
 
 echo "=== 2. Загрузка и распаковка исходников ==="
@@ -50,9 +43,7 @@ tar -xzf "${TARBALL}"
 cd "postgresql-${PG_VERSION}"
 
 echo "=== 3. Конфигурация ==="
-# Используем --prefix=/opt/postgresql-19.
-# Для сборки "полной" версии (как в Debian) включаем основные опции.
-# Обратите внимание: --with-llvm может потребовать значительного времени и памяти.
+# Флаги --without-* относятся только к configure и убирают PL/Perl, PL/Python, PL/Tcl.
 ./configure \
     --prefix="${PG_PREFIX}" \
     --with-icu \
@@ -67,14 +58,14 @@ echo "=== 3. Конфигурация ==="
     --with-lz4 \
     --with-zstd \
     --with-llvm \
-  --without-perl \
-            --without-python \
-            --without-tcl
+    --without-perl \
+    --without-python \
+    --without-tcl
 
-echo "=== 4. Сборка (make world) ==="
-# 'make world' собирает сервер, contrib и документацию [citation:8]
-# Для ускорения можно использовать -j$(nproc), но это может потребовать много RAM.
-make world
+echo "=== 4. Сборка ==="
+# 'make world' собирает сервер, contrib и документацию.
+# Для ускорения используется -j$(nproc), но это может потребовать много RAM.
+make world -j"$(nproc)"
 
 echo "=== 5. Установка ==="
 # 'make install-world' устанавливает всё, что было собрано 'make world'
