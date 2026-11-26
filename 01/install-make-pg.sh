@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+if [ "$(id -u)" -ne 0 ]; then echo "Run as root"; exit 1; fi
+
 # --- Переменные (должны совпадать с параметрами сборки) ---
 PG_PREFIX="/opt/postgresql-19"
 PG_DATA="/var/lib/postgresql/19/data"
@@ -36,7 +38,7 @@ echo "=== 3. Инициализация кластера баз данных ===
 # Проверяем, не инициализирован ли уже кластер
 if [ ! -f "${PG_DATA}/PG_VERSION" ]; then
     echo "Инициализация нового кластера в ${PG_DATA}..."
-    sudo -u "${PG_USER}" "${PG_PREFIX}/bin/initdb" -D "${PG_DATA}" -E UTF8 --locale=C
+    sudo -u "${PG_USER}" "${PG_PREFIX}/bin/initdb" -D "${PG_DATA}" -E UTF8 --locale=C --auth-local=peer --auth-host=scram-sha-256
 else
     echo "Кластер уже инициализирован (найден ${PG_DATA}/PG_VERSION). Пропускаем initdb."
 fi

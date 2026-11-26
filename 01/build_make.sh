@@ -1,10 +1,12 @@
 #!/bin/bash
 set -e  # Останавливать скрипт при любой ошибке
 
+if [ "$(id -u)" -ne 0 ]; then echo "Run as root"; exit 1; fi
+
 # --- Переменные ---
 PG_VERSION="19rc2"
 PG_PREFIX="/opt/postgresql-19"
-SRC_DIR="/tmp/postgresql-build"
+SRC_DIR="/psg_build"
 TARBALL="postgresql-${PG_VERSION}.tar.gz"
 DOWNLOAD_URL="https://ftp.postgresql.org/pub/source/v${PG_VERSION}/${TARBALL}"
 
@@ -27,7 +29,10 @@ apt install -y \
     libzstd-dev \
     llvm-dev \
     clang \
-    pkg-config
+    pkg-config \
+    docbook-xml \
+    docbook-xsl \
+    xsltproc
 
 echo "=== 2. Загрузка и распаковка исходников ==="
 mkdir -p "${SRC_DIR}"
